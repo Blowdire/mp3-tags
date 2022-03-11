@@ -2,37 +2,68 @@ import { Button, Col, Drawer, Input, Modal, Row, Table, Upload } from "antd";
 import React, { useEffect, useState } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import { Formik } from "formik";
+import { ProgressBar } from "react-bootstrap";
 const MainScreen = ({}) => {
   //component state
-  const [FileList, setFileList] = useState(null);
+  const [FileList, setFileList] = useState([]);
   const [ModalEditVisible, setModalEditVisible] = useState(false);
   const [SelectedSong, setSelectedSong] = useState(null);
+  const [Loading, setLoading] = useState(false);
+  const [Progress, setProgress] = useState(0);
   //functions
   const getTags = async (fileList) => {
+    setLoading(true);
+    setProgress(0);
     let tempFileList = [];
     for (let i = 0; i < fileList.length; i++) {
       let currentFile = fileList[i];
       let result = await window.electronAPI.getFile(currentFile.path);
       tempFileList.push({
+        index: i,
         name: currentFile.name,
         path: currentFile.path,
         ...result,
       });
+      setProgress((i / fileList.length) * 100);
     }
     setFileList(tempFileList);
-    console.log("list", tempFileList);
+    setLoading(false);
+    setProgress(0);
   };
 
-  const handleEdit = (values, { setSubmitting }) => {
+  const handleEdit = async (values, { setSubmitting }) => {
+    console.log("SELECTEDSONG", SelectedSong);
     let tags = {
       title: values.title,
       album: values.album,
       artist: values.artist,
       image: values.image,
     };
+    let result = await window.electronAPI.setFile(SelectedSong.path, tags);
+    if (result === true) {
+      let tempFileList = FileList;
+      tempFileList[SelectedSong.index].title = tags.title;
+      tempFileList[SelectedSong.index].album = tags.album;
+      tempFileList[SelectedSong.index].artist = tags.artist;
+      tempFileList[SelectedSong.index].image = tags.image;
+      setFileList([...tempFileList]);
+      setSelectedSong(null);
+      setModalEditVisible(false);
+    }
+  };
+  const handleSearch = async (setFieldValue, values) => {
+    let result = await window.electronAPI.searchSong(values);
+    setFieldValue("title", result[0].name);
+    setFieldValue("album", result[0].album.name);
+    setFieldValue("artist", result[0].artists[0].name);
+    setFieldValue("image", result[0].defaultImage);
+
+    console.log(result);
   };
   //use effects
-
+  useEffect(() => {
+    console.log("LIST", FileList);
+  }, [FileList]);
   return (
     <>
       {" "}
@@ -64,14 +95,28 @@ const MainScreen = ({}) => {
                 setModalEditVisible(false);
               }}
               footer={
-                <Row justify="end">
-                  <Button
-                    type="primary"
-                    loading={isSubmitting}
-                    disabled={!dirty}
-                  >
-                    Salva
-                  </Button>
+                <Row justify="end" gutter={[15, 0]}>
+                  <Col>
+                    <Button
+                      type="default"
+                      onClick={() => {
+                        setSelectedSong(null);
+                        setModalEditVisible(false);
+                      }}
+                    >
+                      Chiudi
+                    </Button>
+                  </Col>
+                  <Col>
+                    <Button
+                      type="primary"
+                      loading={isSubmitting}
+                      disabled={!dirty}
+                      onClick={handleSubmit}
+                    >
+                      Salva
+                    </Button>
+                  </Col>
                 </Row>
               }
               visible={ModalEditVisible}
@@ -128,6 +173,18 @@ const MainScreen = ({}) => {
                     />
                   </Col>
                 </Row>
+                <Row>
+                  <Col span={24}>
+                    <Button
+                      block
+                      onClick={() => {
+                        handleSearch(setFieldValue, values);
+                      }}
+                    >
+                      Ricerca automatica
+                    </Button>
+                  </Col>
+                </Row>
               </Col>
             </Drawer>
           )}
@@ -143,26 +200,46 @@ const MainScreen = ({}) => {
             </Row>
           </Col>
           <Upload
+            style={{ marginBottom: 15 }}
             accept=".mp3"
             beforeUpload={(file, fileList) => {
-              if (!FileList) {
+              // let tempFileList = [...FileList];
+              // let result = await window.electronAPI.getFile(file.path);
+
+              // console.log("LIST", tempFileList);
+              // setFileList([
+              //   ...tempFileList,
+              //   {
+              //     index: tempFileList.length - 1,
+              //     name: file.name,
+              //     path: file.path,
+              //     ...result,
+              //   },
+              // ]);
+              // return "false";
+              if (file.path === fileList[0].path) {
+                console.log("+++++++++++++++++++++++++", fileList);
                 getTags(fileList);
+                return;
               }
-              return false;
+              console.log(file);
+              return;
             }}
             directory
             showUploadList={false}
             customRequest={() => {
-              return;
+              return false;
             }}
           >
             <Button>Scegli cartella</Button>
           </Upload>
         </Row>
-        <Row>
+        <Row style={{ marginTop: 15 }}>
           <Col span={24}>
+            {Loading && <ProgressBar now={Progress} />}
+
             {FileList && (
-              <Table dataSource={FileList}>
+              <Table dataSource={[...FileList]}>
                 <Table.Column
                   dataIndex={"name"}
                   title={"Nome File"}
@@ -198,7 +275,7 @@ const MainScreen = ({}) => {
                     return (
                       <EditOutlined
                         onClick={() => {
-                          setSelectedSong(value);
+                          setSelectedSong({ ...value });
                           setModalEditVisible(true);
                         }}
                         style={{ cursor: "pointer" }}
