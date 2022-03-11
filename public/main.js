@@ -1,8 +1,8 @@
 const path = require("path");
-
-const { app, BrowserWindow } = require("electron");
+var fs = require("fs");
+const NodeID3 = require("node-id3");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const isDev = require("electron-is-dev");
-
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
@@ -10,6 +10,7 @@ function createWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
+      preload: path.join(__dirname, "preload.js"),
     },
   });
 
@@ -29,7 +30,10 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  ipcMain.handle("get-file", handleFile);
+  createWindow();
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -45,3 +49,20 @@ app.on("activate", () => {
     createWindow();
   }
 });
+/**
+ * Handle getting file id3 metadata throug ipc
+ * @param {*} event
+ * @param {String} path path to mp3 file
+ */
+function handleFile(event, path) {
+  //create mo3 file stream
+  const tags = NodeID3.read(path);
+  console.log(tags);
+  console.log("\n******************************\n");
+  return {
+    title: tags.title,
+    album: tags.album,
+    artist: tags.artist,
+    image: tags.raw.APIC.imageBuffer.toString("base64"),
+  };
+}
