@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import { Formik } from "formik";
 import { ProgressBar } from "react-bootstrap";
+import DrawerAutoSearch from "../Components/DrawerAutoSearch";
 const MainScreen = ({}) => {
   //component state
   const [FileList, setFileList] = useState([]);
@@ -243,55 +244,63 @@ const MainScreen = ({}) => {
           <Col span={24}>
             {Loading && <ProgressBar now={Progress} />}
 
-            {FileList && (
-              <Table dataSource={[...FileList]}>
-                <Table.Column
-                  dataIndex={"name"}
-                  title={"Nome File"}
-                  key={"name"}
-                />
-                <Table.Column
-                  dataIndex={"path"}
-                  title={"Percorso file"}
-                  key={"path"}
-                />
-                <Table.Column
-                  dataIndex={"title"}
-                  title="Titolo"
-                  key={"title"}
-                  render={(value, record, index) => {
-                    return <span>{value}</span>;
+            {FileList.length > 0 && (
+              <>
+                <Table dataSource={[...FileList]}>
+                  <Table.Column
+                    dataIndex={"name"}
+                    title={"Nome File"}
+                    key={"name"}
+                  />
+                  <Table.Column
+                    dataIndex={"path"}
+                    title={"Percorso file"}
+                    key={"path"}
+                  />
+                  <Table.Column
+                    dataIndex={"title"}
+                    title="Titolo"
+                    key={"title"}
+                    render={(value, record, index) => {
+                      return <span>{value}</span>;
+                    }}
+                  />
+                  <Table.Column
+                    dataIndex={"image"}
+                    title="Immagine"
+                    key={"image"}
+                    render={(value, record, index) => {
+                      return (
+                        <img
+                          style={{ width: 60 }}
+                          src={`data:image/png;base64,${value}`}
+                        />
+                      );
+                    }}
+                  />
+                  <Table.Column
+                    fixed="right"
+                    width={50}
+                    render={(value, record, index) => {
+                      return (
+                        <EditOutlined
+                          onClick={() => {
+                            setSelectedSong({ ...value });
+                            setModalEditVisible(true);
+                          }}
+                          style={{ cursor: "pointer" }}
+                        />
+                      );
+                    }}
+                  />
+                </Table>
+                <DrawerAutoSearch
+                  songs={FileList}
+                  callbackUpdate={(newFileList) => {
+                    setFileList([...newFileList]);
                   }}
                 />
-                <Table.Column
-                  dataIndex={"image"}
-                  title="Immagine"
-                  key={"image"}
-                  render={(value, record, index) => {
-                    return (
-                      <img
-                        style={{ width: 60 }}
-                        src={`data:image/png;base64,${value}`}
-                      />
-                    );
-                  }}
-                />
-                <Table.Column
-                  fixed="right"
-                  width={50}
-                  render={(value, record, index) => {
-                    return (
-                      <EditOutlined
-                        onClick={() => {
-                          setSelectedSong({ ...value });
-                          setModalEditVisible(true);
-                        }}
-                        style={{ cursor: "pointer" }}
-                      />
-                    );
-                  }}
-                />
-              </Table>
+              </>
             )}
           </Col>
         </Row>
