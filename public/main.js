@@ -5,6 +5,7 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const isDev = require("electron-is-dev");
 var SpotifyWebApi = require("spotify-web-api-node");
 const { default: axios } = require("axios");
+const { cleanText } = require("./utilities");
 var spotifyApi = new SpotifyWebApi({
   clientId: "1de9c1a9b6144f9eb5c48414ce428578",
   clientSecret: "a7b2e43765514cc2a171441cf9881449",
@@ -96,7 +97,23 @@ function handleSetTags(event, path, tags) {
   return success;
 }
 async function handleSearch(event, song) {
-  let searchTerm = song.title + " " + song.artist;
+  // let searchTerm = `track:${song.title.replace(
+  //   " ",
+  //   "%20"
+  // )}+artist:${song.artist.replace(" ", "%20")}`;
+  let searchTerm = "";
+  if (song.values.title !== undefined) {
+    console.log("Hand input");
+    searchTerm = song.values.title + " " + song.values.artist;
+  } else {
+    searchTerm = song.filename;
+  }
+  searchTerm = cleanText(searchTerm);
+  console.log("++++++++++++++++++++++++++++++++++++++++++\n");
+  console.log("Song", song);
+  console.log("TERM", searchTerm);
+  console.log("++++++++++++++++++++++++++++++++++++++++++\n");
+
   try {
     let results = await spotifyApi.searchTracks(searchTerm);
     let imgUrl = results.body.tracks.items[0].album.images[0].url;

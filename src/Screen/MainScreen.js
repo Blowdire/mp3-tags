@@ -32,7 +32,7 @@ const MainScreen = ({}) => {
   };
 
   const handleEdit = async (values, { setSubmitting }) => {
-    console.log("SELECTEDSONG", SelectedSong);
+    console.log("SELECTEDSONG", values);
     let tags = {
       title: values.title,
       album: values.album,
@@ -42,17 +42,22 @@ const MainScreen = ({}) => {
     let result = await window.electronAPI.setFile(SelectedSong.path, tags);
     if (result === true) {
       let tempFileList = FileList;
-      tempFileList[SelectedSong.index].title = tags.title;
-      tempFileList[SelectedSong.index].album = tags.album;
-      tempFileList[SelectedSong.index].artist = tags.artist;
-      tempFileList[SelectedSong.index].image = tags.image;
+      tempFileList[SelectedSong.index].title = values.title;
+      tempFileList[SelectedSong.index].album = values.album;
+      tempFileList[SelectedSong.index].artist = values.artist;
+      tempFileList[SelectedSong.index].image = values.image;
+      console.log("Edited", tempFileList[SelectedSong.index]);
       setFileList([...tempFileList]);
       setSelectedSong(null);
       setModalEditVisible(false);
     }
   };
   const handleSearch = async (setFieldValue, values) => {
-    let result = await window.electronAPI.searchSong(values);
+    let result = await window.electronAPI.searchSong({
+      values,
+      filename: SelectedSong.name,
+    });
+    console.log(result[0]);
     setFieldValue("title", result[0].name);
     setFieldValue("album", result[0].album.name);
     setFieldValue("artist", result[0].artists[0].name);
@@ -173,7 +178,7 @@ const MainScreen = ({}) => {
                     />
                   </Col>
                 </Row>
-                <Row>
+                <Row style={{ marginTop: 15 }}>
                   <Col span={24}>
                     <Button
                       block
@@ -254,6 +259,9 @@ const MainScreen = ({}) => {
                   dataIndex={"title"}
                   title="Titolo"
                   key={"title"}
+                  render={(value, record, index) => {
+                    return <span>{value}</span>;
+                  }}
                 />
                 <Table.Column
                   dataIndex={"image"}
