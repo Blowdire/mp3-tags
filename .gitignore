@@ -26,3 +26,6 @@ yarn-debug.log*
 yarn-error.log*
 dist/win-unpacked/chrome_100_percent.pak
 dist/**
+
+main.env
+keys.json

@@ -205,40 +205,46 @@ const MainScreen = ({}) => {
               </span>
             </Row>
           </Col>
-          <Upload
-            style={{ marginBottom: 15 }}
-            accept=".mp3"
-            beforeUpload={(file, fileList) => {
-              // let tempFileList = [...FileList];
-              // let result = await window.electronAPI.getFile(file.path);
+          <Col span={24} style={{ marginTop: 15 }}>
+            <Row justify="center">
+              <Upload
+                style={{ marginBottom: 15, width: "100%" }}
+                accept=".mp3"
+                beforeUpload={(file, fileList) => {
+                  // let tempFileList = [...FileList];
+                  // let result = await window.electronAPI.getFile(file.path);
 
-              // console.log("LIST", tempFileList);
-              // setFileList([
-              //   ...tempFileList,
-              //   {
-              //     index: tempFileList.length - 1,
-              //     name: file.name,
-              //     path: file.path,
-              //     ...result,
-              //   },
-              // ]);
-              // return "false";
-              if (file.path === fileList[0].path) {
-                console.log("+++++++++++++++++++++++++", fileList);
-                getTags(fileList);
-                return;
-              }
-              console.log(file);
-              return;
-            }}
-            directory
-            showUploadList={false}
-            customRequest={() => {
-              return false;
-            }}
-          >
-            <Button>Scegli cartella</Button>
-          </Upload>
+                  // console.log("LIST", tempFileList);
+                  // setFileList([
+                  //   ...tempFileList,
+                  //   {
+                  //     index: tempFileList.length - 1,
+                  //     name: file.name,
+                  //     path: file.path,
+                  //     ...result,
+                  //   },
+                  // ]);
+                  // return "false";
+                  if (file.path === fileList[0].path) {
+                    console.log("+++++++++++++++++++++++++", fileList);
+                    getTags(fileList);
+                    return;
+                  }
+                  console.log(file);
+                  return;
+                }}
+                directory
+                showUploadList={false}
+                customRequest={() => {
+                  return false;
+                }}
+              >
+                <Row justify="center" style={{ width: "100%" }}>
+                  <Button>Scegli cartella</Button>
+                </Row>
+              </Upload>
+            </Row>
+          </Col>
         </Row>
         <Row style={{ marginTop: 15 }}>
           <Col span={24}>

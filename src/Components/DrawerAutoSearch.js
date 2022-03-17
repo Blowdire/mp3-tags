@@ -13,6 +13,7 @@ const DrawerAutoSearch = ({ songs, callbackUpdate }) => {
     console.log("songs", songs);
   }, [songs]);
   const saveResults = async () => {
+    setLoading(true);
     for (let i = 0; i < Results.length; i++) {
       let currentSong = Results[i];
       let tags = {
@@ -38,11 +39,12 @@ const DrawerAutoSearch = ({ songs, callbackUpdate }) => {
         values: { ...currentSong },
         filename: currentSong.name,
       });
-      currentSong.title = result[0].name;
-      currentSong.album = result[0].album.name;
-      currentSong.artist = result[0].artists[0].name;
-      currentSong.image = result[0].defaultImage;
-
+      if (result && result.length > 0) {
+        currentSong.title = result[0].name;
+        currentSong.album = result[0].album.name;
+        currentSong.artist = result[0].artists[0].name;
+        currentSong.image = result[0].defaultImage;
+      }
       results.push({
         ...currentSong,
       });
@@ -57,6 +59,7 @@ const DrawerAutoSearch = ({ songs, callbackUpdate }) => {
       <Drawer
         visible={DrawerVisible}
         width={"100%"}
+        destroyOnClose
         footer={
           <Row justify="end">
             <Button

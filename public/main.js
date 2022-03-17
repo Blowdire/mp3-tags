@@ -6,9 +6,11 @@ const isDev = require("electron-is-dev");
 var SpotifyWebApi = require("spotify-web-api-node");
 const { default: axios } = require("axios");
 const { cleanText } = require("./utilities");
+var keys = require("./keys.json");
+console.log(keys);
 var spotifyApi = new SpotifyWebApi({
-  clientId: "1de9c1a9b6144f9eb5c48414ce428578",
-  clientSecret: "a7b2e43765514cc2a171441cf9881449",
+  clientId: keys.spotify_client,
+  clientSecret: keys.spotify_secret,
   redirectUri: "http://www.example.com/callback",
 });
 spotifyApi.clientCredentialsGrant().then(
@@ -33,7 +35,8 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
     },
   });
-
+  win.maximize();
+  win.setMenu(null);
   // and load the index.html of the app.
   // win.loadFile("index.html");
   win.loadURL(
